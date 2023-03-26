@@ -1,15 +1,15 @@
 package dev.mrshawn.mlib.selections
 
-import dev.mrshawn.mlib.chat.Chat
-import dev.mrshawn.mlib.items.builders.ItemBuilder
+import dev.mrshawn.mlib.selections.wands.SelectionWand
+import dev.mrshawn.mlib.selections.wands.impl.BasicSelectionWand
+import dev.mrshawn.mlib.utilities.versions.Version
 import org.bukkit.Location
-import org.bukkit.Material
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.EquipmentSlot
+import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.*
 
@@ -20,6 +20,7 @@ class Selection(
 
 	companion object: Listener {
 		private var registered = false
+		private val wands = ArrayList<SelectionWand>()
 
 		fun register(plugin: JavaPlugin) {
 			if (!registered) {
@@ -28,11 +29,11 @@ class Selection(
 			}
 		}
 
-		val SELECTION_WAND = ItemBuilder(Material.GOLDEN_AXE)
-			.name("&bRegion Selection Wand")
-			.addLoreLine("&7Left-click to select corner 1")
-			.addLoreLine("&7Right-click to select corner 2")
-			.build()
+		fun registerWand(wand: SelectionWand) {
+			wands.add(wand)
+		}
+
+		val BASIC_SELECTION_WAND = BasicSelectionWand
 
 		private val selections = HashMap<UUID, Selection>()
 
@@ -42,24 +43,18 @@ class Selection(
 			return selections[uuid]!!
 		}
 
+		fun isWand(item: ItemStack) = wands.any { it.getWandItem().isSimilar(item) }
+
+		fun getWand(item: ItemStack) = wands.firstOrNull { it.getWandItem().isSimilar(item) }
+
 		@EventHandler
 		fun onBlockClick(event: PlayerInteractEvent) {
 			if (event.item == null) return
-			if (event.item!! != SELECTION_WAND) return
+			if (Version.isAtLeast(Version.V1_9) && event.hand != EquipmentSlot.HAND) return
+			val wand = getWand(event.item!!) ?: return
 			if (event.clickedBlock == null) return
-			if (event.hand != EquipmentSlot.HAND) return
 
-			val player = event.player
-			if (event.action == Action.LEFT_CLICK_BLOCK) {
-				Chat.tell(player, "&aCorner one set!")
-				get(player).cornerOne = event.clickedBlock!!.location
-				event.isCancelled = true
-			}
-			if (event.action == Action.RIGHT_CLICK_BLOCK) {
-				Chat.tell(player, "&aCorner two set!")
-				get(player).cornerTwo = event.clickedBlock!!.location
-				event.isCancelled = true
-			}
+			wand.handleClick(event)
 		}
 
 	}

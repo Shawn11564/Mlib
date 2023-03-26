@@ -9,7 +9,7 @@ import org.bukkit.entity.Player
 
 object Chat {
 
-	fun tell(toWhom: CommandSender?, message: String?) { if (toWhom != null && message != null) toWhom.sendMessage(
+	fun tell(toWhom: CommandSender?, message: String?) { if (toWhom != null && message != null && message != "") toWhom.sendMessage(
 		colorize(message)
 	) }
 

@@ -1,7 +1,10 @@
 package dev.mrshawn.mlib.guis.panes.impl
 
 import dev.mrshawn.mlib.guis.items.GuiItem
+import dev.mrshawn.mlib.guis.items.impl.BasicItem
 import dev.mrshawn.mlib.guis.panes.Pane
+import dev.mrshawn.mlib.items.builders.ItemBuilder
+import org.bukkit.Material
 import org.bukkit.inventory.Inventory
 import kotlin.math.ceil
 import kotlin.math.max
@@ -18,16 +21,15 @@ class PaginatedPane(
 	private val pages = ArrayList<StaticPane>()
 	fun pageCount() = pages.size
 
-	var page = 0
-		private set
+	private var page = 0
 
 	fun increment() {
-		page++
-		if (page >= pages.size) page = pages.size - 1
+		page += 1
+		if (page > pages.size - 1) page -= 1
 	}
 
 	fun decrement() {
-		page--
+		page -= 1
 		if (page < 0) page = 0
 	}
 
@@ -75,11 +77,22 @@ class PaginatedPane(
 	}
 
 	override fun getItem(id: String): GuiItem? {
-		return pages[page].getItem(id)
+		return if (pages.isEmpty()) null else pages[page].getItem(id)
 	}
 
 	private fun preCheck(): Boolean {
 		return pages.isEmpty() || pages.size <= page
+	}
+
+	/**
+	 * Utility method to get an item that displays the current page
+	 */
+	fun getPageDisplayItem(): BasicItem {
+		return BasicItem(
+			ItemBuilder(Material.PAPER)
+				.name("&6${max(1, page + 1)} / ${max(1, pageCount())}")
+				.build()
+		)
 	}
 
 }

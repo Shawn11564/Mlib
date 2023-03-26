@@ -49,7 +49,7 @@ class StaticPane(
 	}
 
 	override fun getItem(id: String): GuiItem? {
-		return items.values.find { it.getId() == id }
+		return items.values.find { it.id == id }
 	}
 
 }

@@ -122,6 +122,13 @@ object ItemEditor {
 		return item
 	}
 
+	fun addData(item: ItemStack, key: NamespacedKey, value: String): ItemStack {
+		val meta = getItemMeta(item)
+		meta.persistentDataContainer.set(key, PersistentDataType.STRING, value)
+		item.itemMeta = meta
+		return item
+	}
+
 	fun getData(item: ItemStack, key: NamespacedKey): String? {
 		return getItemMeta(item).persistentDataContainer
 			.get(key, PersistentDataType.STRING)

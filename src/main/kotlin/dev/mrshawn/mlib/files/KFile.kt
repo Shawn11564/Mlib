@@ -53,7 +53,7 @@ open class KFile(
 	}
 
 	fun isValue(key: String): Boolean = values.containsKey(key)
-	fun <T> isValue(key: T): Boolean = if (key is IConfigList) isValue(key.getPath()) else { isValue(key) }
+	fun <T> isValue(key: T): Boolean = if (key is IConfigList) isValue(key.getPath()) else { isValue(key as String) }
 
 	fun <T> set(path: T, value: Any?) {
 		if (path is IConfigList) {

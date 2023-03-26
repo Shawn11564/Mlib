@@ -9,12 +9,12 @@ open class Region(
 	private var cornerTwo: Location
 ) {
 
-	private var minX: Double = 0.0
-	private var minY: Double = 0.0
-	private var minZ: Double = 0.0
-	private var maxX: Double = 0.0
-	private var maxY: Double = 0.0
-	private var maxZ: Double = 0.0
+	protected var minX: Double = 0.0
+	protected var minY: Double = 0.0
+	protected var minZ: Double = 0.0
+	protected var maxX: Double = 0.0
+	protected var maxY: Double = 0.0
+	protected var maxZ: Double = 0.0
 
 	init { calculateBounds() }
 
@@ -37,7 +37,7 @@ open class Region(
 		maxZ = max(cornerOne.z, cornerTwo.z)
 	}
 
-	fun getCenter(): Location {
+	open fun getCenter(): Location {
 		return Location(
 			cornerOne.world,
 			(minX + maxX) / 2,
@@ -50,7 +50,7 @@ open class Region(
 		return location.world == cornerOne.world
 	}
 
-	fun contains(location: Location): Boolean {
+	open fun contains(location: Location): Boolean {
 		val loc = location.block.location
 		return inSameWorld(location)
 				&& loc.x in minX..maxX

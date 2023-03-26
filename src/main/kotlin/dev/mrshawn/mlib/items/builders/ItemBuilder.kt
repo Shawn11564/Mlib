@@ -94,7 +94,7 @@ open class ItemBuilder(material: Material, amount: Int = 1) {
 
 	fun hideAttributes(): ItemBuilder = addItemFlag(ItemFlag.HIDE_ATTRIBUTES)
 
-	fun build(): ItemStack {
+	open fun build(): ItemStack {
 		meta?.lore = lore
 		item.itemMeta = meta
 		return item

@@ -10,15 +10,19 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.HandlerList
 import org.bukkit.event.Listener
+import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
+import java.util.function.Consumer
 import java.util.*
 
 abstract class Gui(
 	private val plugin: JavaPlugin,
+	private var previousGui: Gui? = null,
+	private var nextGui: Gui? = null,
 	val uuid: UUID = UUID.randomUUID(),
 	private val destroyOnClose: Boolean = true
 ): Listener {
@@ -26,6 +30,7 @@ abstract class Gui(
 	protected abstract val inventory: Inventory
 	private val items = HashMap<Int, GuiItem>()
 	private val panes = TreeSet(Pane.PaneComparator())
+	private var onItemPlace: Consumer<InventoryClickEvent> = Consumer { it.isCancelled = true }
 
 	init { create() }
 
@@ -67,6 +72,12 @@ abstract class Gui(
 		panes.remove(pane)
 	}
 
+	fun clear() {
+		items.clear()
+		panes.clear()
+		update()
+	}
+
 	fun update(clear: Boolean = true) {
 		if (clear) inventory.clear()
 
@@ -86,6 +97,9 @@ abstract class Gui(
 	@EventHandler
 	fun onClickEvent(event: InventoryClickEvent) {
 		if (event.clickedInventory == null) return
+		if (event.click == ClickType.DROP && event.clickedInventory == this.inventory) {
+			onItemPlace.accept(event)
+		}
 		if (event.currentItem == null || event.currentItem?.type == Material.AIR) return
 		val item = event.currentItem ?: return
 		val id = ItemUtils.getItemID(item) ?: return
@@ -101,15 +115,15 @@ abstract class Gui(
 	@EventHandler
 	fun onInventoryClose(event: InventoryCloseEvent) {
 		if (event.inventory == inventory) {
-			onClose()
+			onClose(event.player as Player)
 
-			if (destroyOnClose) destroy()
+			if (destroyOnClose && canBeDestroyed()) destroy()
 		}
 	}
 
 	private fun getGuiItem(id: String): GuiItem? {
 		panes.find { it.getItem(id) != null }?.let { return it.getItem(id) }
-		return items.values.find { it.getId() == id }
+		return items.values.find { it.id == id }
 	}
 
 	private fun create() {
@@ -119,6 +133,14 @@ abstract class Gui(
 
 	protected open fun onCreate() {}
 
+	var doNotDestroy = false
+	fun canBeDestroyed(): Boolean {
+		return !doNotDestroy
+				&& inventory.viewers.isEmpty()
+				&& previousGui?.canBeDestroyed() ?: true
+				&& nextGui?.canBeDestroyed() ?: true
+	}
+
 	private fun destroy() {
 		onDestroy()
 		unregister()
@@ -126,7 +148,7 @@ abstract class Gui(
 
 	protected open fun onDestroy() {}
 
-	protected open fun onClose() {}
+	protected open fun onClose(player: Player) {}
 
 	private fun register() {
 		Bukkit.getPluginManager().registerEvents(this, plugin)
@@ -136,8 +158,28 @@ abstract class Gui(
 		HandlerList.unregisterAll(this)
 	}
 
+	fun next(player: Player, update: Boolean = true) {
+		nextGui?.open(player)
+		if (update) nextGui?.update()
+	}
+
+	fun next(player: HumanEntity, update: Boolean = true) {
+		nextGui?.open(player)
+		if (update) nextGui?.update()
+	}
+
+	fun back(player: Player, update: Boolean = true) {
+		previousGui?.open(player)
+		if (update) previousGui?.update()
+	}
+
+	fun back(player: HumanEntity, update: Boolean = true) {
+		previousGui?.open(player)
+		if (update) previousGui?.update()
+	}
+
 	fun open(player: Player) {
-		player.openInventory(inventory)
+		open(player as HumanEntity)
 	}
 
 	fun open(player: HumanEntity) {
@@ -145,7 +187,7 @@ abstract class Gui(
 	}
 
 	fun close(player: Player) {
-		player.closeInventory()
+		close(player as HumanEntity)
 	}
 
 	fun close(player: HumanEntity) {

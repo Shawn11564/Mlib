@@ -55,7 +55,12 @@ object NumberUtils {
 
 	data class Time(val hour: Long, val minute: Long, val second: Long, val millis: Long) {
 		override fun toString(): String {
-			return String.format("%02d:%02d:%02d.%02d", hour, minute, second, millis)
+			return if (millis == 0L) {
+				String.format("%02d:%02d:%02d", hour, minute, second)
+			} else {
+				String.format("%02d:%02d:%02d.%02d", hour, minute, second, millis)
+			}
+
 		}
 	}
 

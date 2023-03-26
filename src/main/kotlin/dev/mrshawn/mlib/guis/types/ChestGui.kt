@@ -9,8 +9,10 @@ import org.bukkit.plugin.java.JavaPlugin
 class ChestGui(
 	plugin: JavaPlugin,
 	name: String,
-	rows: Int = 6
-): Gui(plugin) {
+	rows: Int = 6,
+	previousGui: Gui? = null,
+	nextGui: Gui? = null,
+): Gui(plugin, previousGui = previousGui, nextGui = nextGui) {
 
 	override val inventory: Inventory = Bukkit.createInventory(null, rows * 9, Chat.colorize(name))
 

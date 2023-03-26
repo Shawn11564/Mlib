@@ -2,6 +2,7 @@ package dev.mrshawn.mlib.guis.panes
 
 import dev.mrshawn.mlib.guis.items.GuiItem
 import org.bukkit.inventory.Inventory
+import java.util.*
 
 abstract class Pane(
 	protected val x: Int,
@@ -12,6 +13,7 @@ abstract class Pane(
 	val priority: Priority = Priority.NORMAL
 ) {
 
+	val uuid = UUID.randomUUID()
 	protected val offset = x + (y * 9)
 
 	abstract fun fillWith(items: Collection<GuiItem>)

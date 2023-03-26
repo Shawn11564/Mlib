@@ -5,12 +5,13 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.util.Consumer
 import java.util.*
+import java.util.function.Consumer
 
 abstract class GuiItem(
 	protected val item: ItemStack,
-	val updateOnClick: Boolean = true
+	val updateOnClick: Boolean = true,
+	var id: String = UUID.randomUUID().toString()
 ) {
 
 	companion object {
@@ -18,10 +19,6 @@ abstract class GuiItem(
 		protected val DEFAULT_ON_CLICK = Consumer<InventoryClickEvent> { click -> click.isCancelled = true }
 		val KEY_UUID = NamespacedKey(JavaPlugin.getProvidingPlugin(GuiItem::class.java), "MM-uuid")
 	}
-
-	private val id = UUID.randomUUID().toString()
-
-	fun getId() = id
 
 	open fun getDisplayedItem(): ItemStack {
 		return addItemData(item, id)
