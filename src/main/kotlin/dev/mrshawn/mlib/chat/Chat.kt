@@ -9,6 +9,10 @@ import org.bukkit.entity.Player
 
 object Chat {
 
+	private var logProvider = ""
+
+	fun setLogProvider(provider: String) { logProvider = provider }
+
 	fun tell(toWhom: CommandSender?, message: String?) { if (toWhom != null && message != null && message != "") toWhom.sendMessage(
 		colorize(message)
 	) }
@@ -22,7 +26,12 @@ object Chat {
 			toWhom.spigot().sendMessage(ChatMessageType.ACTION_BAR, *TextComponent.fromLegacyText(colorize(message)))
 	}
 
-	fun log(message: String?) { if (message != null) Bukkit.getConsoleSender().sendMessage(colorize(message)) }
+	fun log(message: String?) {
+		if (message != null) {
+			val formattedMessage = if (logProvider != "") "[$logProvider] $message" else message
+			Bukkit.getConsoleSender().sendMessage(colorize(formattedMessage))
+		}
+	}
 
 	fun log(collection: Collection<*>) { for (item in collection) { log(item.toString()) } }
 

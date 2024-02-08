@@ -49,16 +49,17 @@ object NumberUtils {
 		val second: Long = originalMillis / 1000 % 60
 		val minute: Long = originalMillis / (1000 * 60) % 60
 		val hour: Long = originalMillis / (1000 * 60 * 60) % 24
+		val day: Long = originalMillis / (1000 * 60 * 60 * 24)
 
-		return Time(hour, minute, second, millis)
+		return Time(day, hour, minute, second, millis)
 	}
 
-	data class Time(val hour: Long, val minute: Long, val second: Long, val millis: Long) {
+	data class Time(val day: Long, val hour: Long, val minute: Long, val second: Long, val millis: Long) {
 		override fun toString(): String {
 			return if (millis == 0L) {
-				String.format("%02d:%02d:%02d", hour, minute, second)
+				String.format("%02d:%02d:%02d:%02d", day, hour, minute, second)
 			} else {
-				String.format("%02d:%02d:%02d.%02d", hour, minute, second, millis)
+				String.format("%02d:%02d:%02d:%02d.%02d", day, hour, minute, second, millis)
 			}
 
 		}

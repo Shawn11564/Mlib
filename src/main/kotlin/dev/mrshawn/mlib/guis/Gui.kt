@@ -1,6 +1,8 @@
 package dev.mrshawn.mlib.guis
 
+import dev.mrshawn.mlib.chat.Chat
 import dev.mrshawn.mlib.guis.items.GuiItem
+import dev.mrshawn.mlib.guis.items.impl.CycleItem
 import dev.mrshawn.mlib.guis.panes.Pane
 import dev.mrshawn.mlib.items.ItemUtils
 import org.bukkit.Bukkit

@@ -10,11 +10,12 @@ import org.bukkit.persistence.PersistentDataType
 
 open class ItemBuilder(material: Material, amount: Int = 1) {
 
-	protected val item = ItemStack(material, amount)
-	protected val meta = item.itemMeta
-	protected val lore = mutableListOf<String>()
+	protected var item = ItemStack(material, amount)
+	protected var meta = item.itemMeta
+	protected var lore = mutableListOf<String>()
 
 	companion object {
+
 		fun glow(item: ItemStack): ItemStack {
 			val meta = item.itemMeta
 			meta?.addItemFlags(ItemFlag.HIDE_ENCHANTS)
@@ -22,6 +23,16 @@ open class ItemBuilder(material: Material, amount: Int = 1) {
 			item.itemMeta = meta
 			return item
 		}
+
+		fun fromItemStack(originalItemStack: ItemStack): ItemBuilder {
+			val item = originalItemStack.clone()
+			val builder = ItemBuilder(item.type, item.amount)
+			builder.item = item.clone()
+			builder.meta = item.itemMeta
+			builder.lore = item.itemMeta?.lore ?: mutableListOf()
+			return builder
+		}
+
 	}
 
 	fun name(name: String): ItemBuilder {
@@ -39,17 +50,17 @@ open class ItemBuilder(material: Material, amount: Int = 1) {
 		return this
 	}
 
-	fun addLoreLines(lines: Array<String>): ItemBuilder {
-		lore.addAll(lines.map { Chat.colorize(it) })
-		return this
-	}
-
-	fun addLoreLines(lines: MutableList<String>): ItemBuilder {
-		return addLoreLines(lines.toTypedArray())
+	fun addLoreLines(vararg lines: String): ItemBuilder {
+		return addLoreLines(lines.toList())
 	}
 
 	fun addLoreLines(lines: ArrayList<String>): ItemBuilder {
-		return addLoreLines(lines.toTypedArray())
+		return addLoreLines(lines.toList())
+	}
+
+	fun addLoreLines(lines: List<String>): ItemBuilder {
+		lore.forEach { addLoreLine(it) }
+		return this
 	}
 
 	fun addEnchantment(enchantment: Enchantment, level: Int): ItemBuilder {

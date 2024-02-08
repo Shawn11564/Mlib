@@ -1,5 +1,6 @@
 package dev.mrshawn.mlib.utilities.events
 
+import dev.mrshawn.mlib.chat.Chat
 import dev.mrshawn.mlib.selections.Selection
 import org.bukkit.Bukkit
 import org.bukkit.entity.LivingEntity
@@ -19,11 +20,22 @@ object EventUtils {
 	fun registerEvents(plugin: JavaPlugin, vararg listeners: Listener) {
 		val pluginManager = Bukkit.getPluginManager()
 		listeners.forEach { listener ->
-			if (listener is Selection.Companion) {
-				listener.register(plugin)
-			} else {
-				pluginManager.registerEvents(listener, plugin)
+			try {
+				if (listener is Selection.Companion) {
+					listener.register(plugin)
+				} else {
+					pluginManager.registerEvents(listener, plugin)
+				}
+			} catch (e: Exception) {
+				Chat.log("&cFailed to register listener: ${listener.javaClass.simpleName}")
+				e.printStackTrace()
 			}
+		}
+	}
+
+	fun registerEventIf(plugin: JavaPlugin, listener: Listener, condition: () -> Boolean) {
+		if (condition()) {
+			registerEvents(plugin, listener)
 		}
 	}
 

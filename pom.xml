@@ -6,7 +6,7 @@
 
 	<groupId>dev.mrshawn</groupId>
 	<artifactId>Mlib</artifactId>
-	<version>0.0.122-ALPHA</version>
+	<version>0.0.133</version>
 	<packaging>jar</packaging>
 
 	<name>Mlib</name>
@@ -14,7 +14,7 @@
 	<description>A utility plugin used for all of MrShawn's plugins</description>
 	<properties>
 		<java.version>1.8</java.version>
-		<kotlin.version>1.7.20</kotlin.version>
+		<kotlin.version>1.9.21</kotlin.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<url>https://mrshawn.dev/</url>
