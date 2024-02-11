@@ -1,13 +1,14 @@
 package dev.mrshawn.mlib.regions
 
 import org.bukkit.Location
+import org.bukkit.configuration.serialization.ConfigurationSerializable
 import kotlin.math.max
 import kotlin.math.min
 
 open class Region(
 	private var cornerOne: Location,
 	private var cornerTwo: Location
-) {
+): ConfigurationSerializable {
 
 	protected var minX: Double = 0.0
 	protected var minY: Double = 0.0
@@ -17,6 +18,14 @@ open class Region(
 	protected var maxZ: Double = 0.0
 
 	init { calculateBounds() }
+
+	fun getCornerOne(): Location {
+		return cornerOne
+	}
+
+	fun getCornerTwo(): Location {
+		return cornerTwo
+	}
 
 	fun setCornerOne(cornerOne: Location) {
 		this.cornerOne = cornerOne
@@ -56,6 +65,13 @@ open class Region(
 				&& loc.x in minX..maxX
 				&& loc.y in minY..maxY
 				&& loc.z in minZ..maxZ
+	}
+
+	override fun serialize(): Map<String, Any> {
+		return mapOf(
+			"cornerOne" to cornerOne.serialize(),
+			"cornerTwo" to cornerTwo.serialize()
+		)
 	}
 
 }
