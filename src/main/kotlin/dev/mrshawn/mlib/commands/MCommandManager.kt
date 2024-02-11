@@ -132,10 +132,10 @@ class MCommandManager: TabExecutor {
 						CommandSender::class.java -> sender
 						Player::class.java -> sender as? Player
 							?: throw ContextResolverFailedException("You must be a player to execute this command!")
-						else -> parseContext(param.type, sender, args.copyOfRange(index, args.size), param.isAnnotationPresent(Optional::class.java))
+						else -> parseContext(param.type, sender, args.copyOfRange(0, args.size), param.isAnnotationPresent(Optional::class.java))
 					}
 				} else {
-					parseContext(param.type, sender, args.copyOfRange(index, args.size), param.isAnnotationPresent(Optional::class.java))
+					parseContext(param.type, sender, args.copyOfRange(index - 1, args.size), param.isAnnotationPresent(Optional::class.java))
 						?: throw ContextResolverFailedException()
 				}
 			}
@@ -185,7 +185,7 @@ class MCommandManager: TabExecutor {
 			val completionStrings = commandCompletionAnnotation.completions.split(" ")
 			if (i <= completionStrings.size) {
 				completions.addAll(
-					parseCompletion(sender, completionStrings[i - 1]).stream()
+					parseCompletion(sender, completionStrings[i]).stream()
 						.filter { it.startsWith(args[i]) }
 						.collect(Collectors.toList())
 				)
