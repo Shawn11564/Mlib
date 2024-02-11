@@ -67,6 +67,20 @@ open class Region(
 				&& loc.z in minZ..maxZ
 	}
 
+	open fun overlaps(other: Region): Boolean {
+		// Check if there is overlap in the x dimension
+		val overlapInX = minX <= other.maxX && maxX >= other.minX
+
+		// Check if there is overlap in the y dimension
+		val overlapInY = minY <= other.maxY && maxY >= other.minY
+
+		// Check if there is overlap in the z dimension
+		val overlapInZ = minZ <= other.maxZ && maxZ >= other.minZ
+
+		// If there's overlap in both the x, y, z dimensions, the claims intersect
+		return overlapInX && overlapInY && overlapInZ
+	}
+
 	override fun serialize(): Map<String, Any> {
 		return mapOf(
 			"cornerOne" to cornerOne.serialize(),
