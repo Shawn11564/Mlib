@@ -10,12 +10,12 @@ open class Region(
 	private var cornerTwo: Location
 ): ConfigurationSerializable {
 
-	protected var minX: Double = 0.0
-	protected var minY: Double = 0.0
-	protected var minZ: Double = 0.0
-	protected var maxX: Double = 0.0
-	protected var maxY: Double = 0.0
-	protected var maxZ: Double = 0.0
+	var minX: Double = 0.0
+	var minY: Double = 0.0
+	var minZ: Double = 0.0
+	var maxX: Double = 0.0
+	var maxY: Double = 0.0
+	var maxZ: Double = 0.0
 
 	init { calculateBounds() }
 

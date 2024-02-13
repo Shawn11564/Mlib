@@ -13,7 +13,6 @@ import org.bukkit.command.SimpleCommandMap
 import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 import java.lang.reflect.Field
-import java.util.stream.Collectors
 
 class MCommandManager: TabExecutor {
 
@@ -97,54 +96,70 @@ class MCommandManager: TabExecutor {
 		if (args.isEmpty() && allowNull) {
 			return null
 		} else if (args.isEmpty()) {
-			throw ContextResolverFailedException()
+			throw ContextResolverFailedException("Expected argument after command but none was found.")
 		}
-		val context = commandContexts[objType]?.invoke(sender, args)
+
+		val context = if (objType.name.equals("java.lang.Boolean")) {
+			commandContexts[Boolean::class.java]?.invoke(sender, args)
+		} else {
+			commandContexts[objType]?.invoke(sender, args)
+		}
+
 		if (context == null && allowNull) {
 			return null
 		} else if (context == null) {
-			throw ContextResolverFailedException()
+			throw ContextResolverFailedException("Failed to resolve context for type: ${objType.simpleName} with arguments: ${args.joinToString()}")
 		}
+
 		return context
 	}
 
 	override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<String>): Boolean {
-		// find the valid command
 		var currentCommand: MCommand? = getCommand(label)
 		var i = 0
-		while (i < args.size) {
-			val subCommand = currentCommand?.getSubCommand(args[i])
+		while (i < args.size && currentCommand != null) {
+			val subCommand = currentCommand.getSubCommand(args[i])
 			if (subCommand != null) {
 				currentCommand = subCommand
-				i++
+				i++ // Move past the subcommand to the arguments for the command method
 			} else {
-				break
+				break // No more subcommands, remaining args are for the command method
 			}
 		}
 
-		val parsedContext: List<Any?>?
-		try {
-			parsedContext = currentCommand?.getExecuteMethodParams()?.mapIndexed { index, param ->
-				// if the first param is CommandSender or Player handle it as the sender
-				// else, try to resolve the context
-				if (index == 0 && param.type.isCommandSender()) {
+
+		// Parse method parameters and handle CommandSender or Player specifically
+		val executeMethodParams = currentCommand?.getExecuteMethodParams()
+		val parsedContext: MutableList<Any?> = mutableListOf()
+
+		executeMethodParams?.forEachIndexed { index, param ->
+			when {
+				index == 0 && (param.type.isCommandSender()) -> {
+					// For the first parameter, if it's CommandSender or Player, use the sender directly
 					when (param.type) {
-						CommandSender::class.java -> sender
-						Player::class.java -> sender as? Player
-							?: throw ContextResolverFailedException("You must be a player to execute this command!")
-						else -> parseContext(param.type, sender, args.copyOfRange(0, args.size), param.isAnnotationPresent(Optional::class.java))
+						CommandSender::class.java -> parsedContext.add(sender)
+						Player::class.java -> parsedContext.add(sender as? Player)
 					}
-				} else {
-					parseContext(param.type, sender, args.copyOfRange(index - 1, args.size), param.isAnnotationPresent(Optional::class.java))
-						?: throw ContextResolverFailedException()
+				}
+				else -> {
+					if (index < args.size) {
+						// Argument provided, parse based on expected type
+						val context = parseContext(param.type, sender, args.copyOfRange(index, args.size), false)
+						parsedContext.add(context)
+					} else if (param.isAnnotationPresent(Optional::class.java)) {
+						// Parameter is optional and not provided, add null
+						parsedContext.add(null)
+					} else {
+						// Handle mandatory parameters not provided (e.g., by showing usage message)
+						Chat.tell(sender, "&cInvalid command syntax.")
+						return false
+					}
 				}
 			}
-		} catch (ex: ContextResolverFailedException) {
-			Chat.tell(sender, currentCommand?.getUsageMessage())
-			return false
 		}
 
-		if (!parsedContext.isNullOrEmpty()) {
+		// Execute the command method with parsed parameters
+		if (parsedContext.isNotEmpty()) {
 			currentCommand?.getExecuteMethod()?.invoke(currentCommand, *parsedContext.toTypedArray())
 		} else {
 			currentCommand?.getExecuteMethod()?.invoke(currentCommand)
@@ -161,38 +176,57 @@ class MCommandManager: TabExecutor {
 				currentCommand = subCommand
 				i++
 			} else {
+				// If no more subcommands, break the loop to start suggesting parameters
 				break
 			}
 		}
-		val completions = if (i < args.size) {
-			currentCommand?.getSubCommands()
-				?.filter { it.getPreconditions().stream().anyMatch { precondition -> !precondition.check(sender) } }
-				?.flatMap { it.getAliases() }
-				?.filter { it.startsWith(args[i]) }
-				?.toMutableList() ?: mutableListOf()
-		} else {
-			currentCommand?.getSubCommands()
-				?.filter { it.getPreconditions().stream().anyMatch { precondition -> !precondition.check(sender) } }
-				?.flatMap { it.getAliases() }
-				?.toMutableList() ?: mutableListOf()
+
+		// Prepare the list for completions
+		val completions = mutableListOf<String>()
+
+		// If we are exactly at the subcommand level, suggest subcommands
+		if (i == args.size - 1 && args.last().isEmpty()) {
+			completions.addAll(
+				currentCommand?.getSubCommands()?.flatMap { it.getAliases() } ?: listOf()
+			)
 		}
 
-		// Check if the execute method has the CommandCompletion annotation
+		// Check if we're at the parameter entry stage for the subcommand
 		val executeMethod = currentCommand?.getExecuteMethod()
-		val commandCompletionAnnotation = executeMethod?.getAnnotation(CommandCompletion::class.java)
-		if (commandCompletionAnnotation != null) {
-			// parse completion
-			val completionStrings = commandCompletionAnnotation.completions.split(" ")
-			if (i <= completionStrings.size) {
-				completions.addAll(
-					parseCompletion(sender, completionStrings[i]).stream()
-						.filter { it.startsWith(args[i]) }
-						.collect(Collectors.toList())
-				)
+		val parameters = executeMethod?.parameters
+		val skipFirstParameter = parameters?.firstOrNull()?.type?.isCommandSender() ?: false
+
+		// If the first parameter is CommandSender or Player and there are parameters to complete
+		if (skipFirstParameter && (parameters?.size ?: 0) > 1 && args.isNotEmpty()) {
+			// Adjust the completion suggestions based on CommandCompletion annotation
+			val commandCompletionAnnotation = executeMethod?.getAnnotation(CommandCompletion::class.java)
+			if (commandCompletionAnnotation != null) {
+				val completionList = commandCompletionAnnotation.completions.split(" ")
+				// Determine the adjusted index for completion, considering skipped CommandSender/Player
+				val adjustedIndexForCompletion = if (skipFirstParameter) args.size - 2 else args.size - 1
+				if (adjustedIndexForCompletion < completionList.size) {
+					val completionOptions = parseCompletion(sender, completionList[adjustedIndexForCompletion])
+					completions.addAll(completionOptions.filter { it.startsWith(args.last()) })
+				}
+			}
+		} else if (!skipFirstParameter && args.size > 1) {
+			// Handle when the first parameter is not skipped and it's time to suggest parameters
+			val commandCompletionAnnotation = executeMethod?.getAnnotation(CommandCompletion::class.java)
+			if (commandCompletionAnnotation != null && args.size - 1 <= (parameters?.size ?: 0)) {
+				val completionList = commandCompletionAnnotation.completions.split(" ")
+				val completionOptions = parseCompletion(sender, completionList[args.size - 2])
+				completions.addAll(completionOptions.filter { it.startsWith(args.last()) })
 			}
 		}
 
-		return completions
+		// Still include subcommands if we're not yet into parameter completion
+		if (completions.isEmpty() && args.size <= 1) {
+			completions.addAll(
+				currentCommand?.getSubCommands()?.flatMap { it.getAliases() } ?: listOf()
+			)
+		}
+
+		return completions.distinct().toMutableList()
 	}
 
 }
