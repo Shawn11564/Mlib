@@ -222,7 +222,7 @@ class MCommandManager: TabExecutor {
 		// Still include subcommands if we're not yet into parameter completion
 		if (completions.isEmpty() && args.size <= 1) {
 			completions.addAll(
-				currentCommand?.getSubCommands()?.flatMap { it.getAliases() } ?: listOf()
+				currentCommand?.getSubCommands()?.flatMap { it.getAliases().filter { alias -> alias.startsWith(args.last()) } } ?: listOf()
 			)
 		}
 
