@@ -99,10 +99,10 @@ class MCommandManager: TabExecutor {
 			throw ContextResolverFailedException("Expected argument after command but none was found.")
 		}
 
-		val context = if (objType.name.equals("java.lang.Boolean")) {
-			commandContexts[Boolean::class.java]?.invoke(sender, args)
-		} else {
-			commandContexts[objType]?.invoke(sender, args)
+		val context = when (objType.name) {
+			"java.lang.Boolean" -> commandContexts[Boolean::class.java]?.invoke(sender, args)
+			"java.lang.Integer" -> commandContexts[Int::class.java]?.invoke(sender, args)
+			else -> commandContexts[objType]?.invoke(sender, args)
 		}
 
 		if (context == null && allowNull) {
