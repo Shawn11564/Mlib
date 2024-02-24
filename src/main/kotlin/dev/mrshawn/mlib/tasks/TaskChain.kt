@@ -5,15 +5,15 @@ import java.util.concurrent.Executors
 class TaskChain {
 
 	private val executor = Executors.newSingleThreadExecutor()
-	private val tasks = ArrayList<Runnable>()
+	private val tasks = ArrayList<MTask>()
 
-	fun first(task: Runnable): TaskChain {
+	fun first(task: MTask): TaskChain {
 		tasks[0] = task
 		tasks[tasks.size - 1]
 		return this
 	}
 
-	fun then(task: Runnable): TaskChain {
+	fun then(task: MTask): TaskChain {
 		tasks.add(task)
 		return this
 	}

@@ -1,19 +1,19 @@
 package dev.mrshawn.mlib.tasks.schedules
 
-import dev.mrshawn.mlib.tasks.MTask
+import dev.mrshawn.mlib.tasks.ScheduledMTask
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitRunnable
 import java.util.*
 
-abstract class MCalendar(
+class MCalendar(
 	private val plugin: Plugin,
 	private val timeZone: String,
 	private val checkInterval: Int
 ) {
 
-	private val tasks = HashMap<Int, MTask>()
+	private val tasks = HashMap<Int, ScheduledMTask>()
 
-	fun addTask(task: MTask) {
+	fun addTask(task: ScheduledMTask) {
 		tasks[task.taskID] = task
 	}
 

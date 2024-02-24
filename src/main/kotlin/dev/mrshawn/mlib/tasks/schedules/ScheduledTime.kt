@@ -9,6 +9,16 @@ class ScheduledTime(
 	private val minute: Int
 ): ConfigurationSerializable {
 
+	companion object {
+		fun deserialize(map: Map<String, Any>): ScheduledTime {
+			return ScheduledTime(
+				map["day"] as Int,
+				map["hour"] as Int,
+				map["minute"] as Int
+			)
+		}
+	}
+
 	fun isCurrentTime(calendar: Calendar): Boolean {
 		return (
 				day == 8
