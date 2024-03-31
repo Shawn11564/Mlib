@@ -26,7 +26,7 @@ abstract class GuiItem(
 
 	abstract fun getOnClick(): Consumer<InventoryClickEvent>
 
-	private fun addItemData(item: ItemStack, data: String): ItemStack {
+	protected fun addItemData(item: ItemStack, data: String): ItemStack {
 		val meta = item.itemMeta ?: throw NullPointerException("ItemMeta is null")
 		val dataContainer = meta.persistentDataContainer
 		dataContainer.set(KEY_UUID, PersistentDataType.STRING, data)

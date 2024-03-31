@@ -59,7 +59,7 @@ open class ItemBuilder(material: Material, amount: Int = 1) {
 	}
 
 	fun addLoreLines(lines: List<String>): ItemBuilder {
-		lore.forEach { addLoreLine(it) }
+		lines.forEach { addLoreLine(it) }
 		return this
 	}
 

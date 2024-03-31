@@ -1,10 +1,10 @@
 package dev.mrshawn.mlib.guis
 
-import dev.mrshawn.mlib.chat.Chat
 import dev.mrshawn.mlib.guis.items.GuiItem
-import dev.mrshawn.mlib.guis.items.impl.CycleItem
+import dev.mrshawn.mlib.guis.items.impl.BasicItem
 import dev.mrshawn.mlib.guis.panes.Pane
 import dev.mrshawn.mlib.items.ItemUtils
+import dev.mrshawn.mlib.items.builders.ItemBuilder
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.HumanEntity
@@ -18,8 +18,8 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.function.Consumer
 import java.util.*
+import java.util.function.Consumer
 
 abstract class Gui(
 	private val plugin: JavaPlugin,
@@ -28,6 +28,10 @@ abstract class Gui(
 	val uuid: UUID = UUID.randomUUID(),
 	private val destroyOnClose: Boolean = true
 ): Listener {
+
+	companion object {
+		val FILLER_ITEM = BasicItem(ItemBuilder(Material.BLACK_STAINED_GLASS_PANE).setNoName().build())
+	}
 
 	protected abstract val inventory: Inventory
 	private val items = HashMap<Int, GuiItem>()
@@ -78,6 +82,12 @@ abstract class Gui(
 		items.clear()
 		panes.clear()
 		update()
+	}
+
+	fun update(x: Int, y: Int) {
+		val index = x + y * 9
+		val item = items[index] ?: return
+		inventory.setItem(index, item.getDisplayedItem())
 	}
 
 	fun update(clear: Boolean = true) {

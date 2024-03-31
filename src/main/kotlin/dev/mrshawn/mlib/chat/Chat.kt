@@ -17,9 +17,16 @@ object Chat {
 		colorize(message)
 	) }
 
+	fun tell(toWhom: CommandSender, vararg messages: String) { for (message in messages) { tell(toWhom, message) } }
+
+	@JvmName("tellArray")
 	fun tell(toWhom: CommandSender, messages: Array<String?>) { for (message in messages) { tell(toWhom, message) } }
 
 	fun tell(toWhom: CommandSender, messages: ArrayList<String>) { for (message in messages) { tell(toWhom, message) } }
+
+	fun tell(toWhom: CommandSender, messages: List<String>) { for (message in messages) { tell(toWhom, message) } }
+
+	fun tell(toWhom: CommandSender, messages: Collection<String>) { for (message in messages) { tell(toWhom, message) } }
 
 	fun tellActionbar(toWhom: Player, message: String?) {
 		if (message != null)
@@ -43,7 +50,9 @@ object Chat {
 
 	fun broadcast(vararg messages: String?) { for (message in messages) { broadcast(message) } }
 
-	fun clearChat() = run { for (i in 0 .. 100) { Bukkit.broadcastMessage(" ") } }
+	fun broadcast(messages: Collection<String>) { for (message in messages) { broadcast(message) } }
+
+	fun clearChat(count: Int = 100) = run { for (i in 0 .. count) { Bukkit.broadcastMessage(" ") } }
 
 	fun colorize(message: String?): String =
 		if (message != null) ChatColor.translateAlternateColorCodes('&', message) else ""
