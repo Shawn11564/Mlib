@@ -212,4 +212,8 @@ abstract class Gui(
 			.forEach { it.closeInventory() }
 	}
 
+	fun getViewers(): List<HumanEntity> {
+		return inventory.viewers
+	}
+
 }

@@ -17,19 +17,24 @@ object Chat {
 		colorize(message)
 	) }
 
-	fun tell(toWhom: CommandSender, vararg messages: String) { for (message in messages) { tell(toWhom, message) } }
+	fun tell(toWhom: CommandSender?, vararg messages: String) {
+		for (message in messages) {
+			if (toWhom != null && message != "")
+				toWhom.sendMessage(colorize(message))
+		}
+	}
 
 	@JvmName("tellArray")
-	fun tell(toWhom: CommandSender, messages: Array<String?>) { for (message in messages) { tell(toWhom, message) } }
+	fun tell(toWhom: CommandSender?, messages: Array<String?>) { for (message in messages) { tell(toWhom, message) } }
 
-	fun tell(toWhom: CommandSender, messages: ArrayList<String>) { for (message in messages) { tell(toWhom, message) } }
+	fun tell(toWhom: CommandSender?, messages: ArrayList<String>) { for (message in messages) { tell(toWhom, message) } }
 
-	fun tell(toWhom: CommandSender, messages: List<String>) { for (message in messages) { tell(toWhom, message) } }
+	fun tell(toWhom: CommandSender?, messages: List<String>) { for (message in messages) { tell(toWhom, message) } }
 
-	fun tell(toWhom: CommandSender, messages: Collection<String>) { for (message in messages) { tell(toWhom, message) } }
+	fun tell(toWhom: CommandSender?, messages: Collection<String>) { for (message in messages) { tell(toWhom, message) } }
 
-	fun tellActionbar(toWhom: Player, message: String?) {
-		if (message != null)
+	fun tellActionbar(toWhom: Player?, message: String?) {
+		if (message != null && toWhom != null)
 			toWhom.spigot().sendMessage(ChatMessageType.ACTION_BAR, *TextComponent.fromLegacyText(colorize(message)))
 	}
 

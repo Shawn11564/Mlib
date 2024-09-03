@@ -50,6 +50,11 @@ open class ItemBuilder(material: Material, amount: Int = 1) {
 		return this
 	}
 
+	fun addLoreLineIf(line: String, condition: () -> Boolean): ItemBuilder {
+		if (condition.invoke()) addLoreLine(line)
+		return this
+	}
+
 	fun addLoreLines(vararg lines: String): ItemBuilder {
 		return addLoreLines(lines.toList())
 	}
@@ -60,6 +65,11 @@ open class ItemBuilder(material: Material, amount: Int = 1) {
 
 	fun addLoreLines(lines: List<String>): ItemBuilder {
 		lines.forEach { addLoreLine(it) }
+		return this
+	}
+
+	fun addLoreLinesIf(lines: List<String>, condition: () -> Boolean): ItemBuilder {
+		if (condition.invoke()) addLoreLines(lines)
 		return this
 	}
 

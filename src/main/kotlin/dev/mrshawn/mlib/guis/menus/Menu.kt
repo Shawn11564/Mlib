@@ -13,6 +13,35 @@ abstract class Menu(
 	protected val nextMenu: Menu? = null
 ) {
 
+	companion object {
+		fun rebuild(menuClass: Class<out Menu>) {
+			val instances = getInstances(menuClass)
+			instances.forEach { menuInstance ->
+				val viewers = menuInstance.gui.getViewers()
+				viewers.forEach { _ ->
+					menuInstance.gui.clear()
+					menuInstance.createGui()
+					menuInstance.gui.update()
+				}
+			}
+		}
+
+		private fun getInstances(menuClass: Class<out Menu>): List<Menu> {
+			val instances = mutableListOf<Menu>()
+			val fields = menuClass.declaredFields
+			for (field in fields) {
+				if (Menu::class.java.isAssignableFrom(field.type)) {
+					field.isAccessible = true
+					val instance = field.get(null) as? Menu
+					if (instance != null) {
+						instances.add(instance)
+					}
+				}
+			}
+			return instances
+		}
+	}
+
 	protected abstract val gui: Gui
 
 	protected abstract fun createGui()

@@ -3,7 +3,6 @@ package dev.mrshawn.mlib.commands
 import dev.mrshawn.mlib.commands.annotations.CommandAlias
 import dev.mrshawn.mlib.commands.annotations.CommandExecutor
 import dev.mrshawn.mlib.commands.preconditions.Precondition
-import dev.mrshawn.mlib.extensions.isCommandSender
 import java.lang.reflect.Parameter
 
 abstract class MCommand(
@@ -51,7 +50,7 @@ abstract class MCommand(
 		}
 
 		getExecuteMethodParams()?.forEachIndexed { index, param ->
-			if (!(index == 0 && param.type.isCommandSender())) {
+			if (!(index == 0 && MCommandManager.isCommandSender(param.type))) {
 				usageMessage.append(" <${param.type.simpleName.lowercase()}>")
 			}
 		}

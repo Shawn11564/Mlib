@@ -49,24 +49,15 @@ class PaginatedPane(
 		if (items.isEmpty()) return
 
 		val itemsPerPage = width * height
-		val pagesNeeded = max(ceil(items.size / itemsPerPage.toDouble()), 1.0).toInt()
+		val pagesNeeded = max(ceil(items.size / itemsPerPage.toDouble()).toInt(), 1)
 
-		val itemSets = ArrayList<ArrayList<GuiItem>>()
-		var i = 0
-		while (i < items.size) {
-			val set = ArrayList<GuiItem>()
-			for (j in 0 until itemsPerPage) {
-				if (i >= items.size) break
+		val itemSets = items.chunked(itemsPerPage)
 
-				set.add(items.elementAt(i))
-				i++
-			}
-			itemSets.add(set)
-		}
+		pages.clear()
 
-		for (j in 0 until pagesNeeded) {
+		for (set in itemSets) {
 			createPage()
-			pages[j].fillWith(itemSets[j])
+			pages.last().fillWith(set)
 		}
 	}
 

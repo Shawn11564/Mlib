@@ -1,6 +1,5 @@
 package dev.mrshawn.mlib.guis.items.impl
 
-import dev.mrshawn.mlib.chat.Chat
 import dev.mrshawn.mlib.guis.items.GuiItem
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
@@ -10,6 +9,8 @@ class CycleItem(
 	private vararg val items: GuiItem,
 	private val cycleOnClick: Boolean = true
 ): GuiItem(items[0].getDisplayedItem()) {
+
+	constructor(items: Collection<GuiItem>, cycleOnClick: Boolean = true): this(*items.toTypedArray(), cycleOnClick = cycleOnClick)
 
 	init {
 		items.forEach { it.id = this.id } // Set the id of all items to the id of this item
