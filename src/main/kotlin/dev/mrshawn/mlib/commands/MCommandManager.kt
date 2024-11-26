@@ -12,6 +12,7 @@ import org.bukkit.command.SimpleCommandMap
 import org.bukkit.command.TabExecutor
 import org.bukkit.entity.Player
 import java.lang.reflect.Field
+import java.lang.reflect.Method
 
 class MCommandManager: TabExecutor {
 
@@ -140,13 +141,22 @@ class MCommandManager: TabExecutor {
 	override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<String>): Boolean {
 		var currentCommand: MCommand? = getCommand(label)
 		var i = 0
+		var methodToExecute: Method? = null
+
 		while (i < args.size && currentCommand != null) {
 			val subCommand = currentCommand.getSubCommand(args[i])
 			if (subCommand != null) {
 				currentCommand = subCommand
-				i++ // Move past the subcommand to the arguments for the command method
+				i++
 			} else {
-				break // No more subcommands, remaining args are for the command method
+				// Check for subcommand method
+				methodToExecute = currentCommand.getSubCommandMethod(args[i])
+				if (methodToExecute != null) {
+					i++ // Move past the subcommand to the arguments for the method
+					break
+				} else {
+					break // No more subcommands, remaining args are for the command method
+				}
 			}
 		}
 
@@ -158,8 +168,11 @@ class MCommandManager: TabExecutor {
 			}
 		}
 
+		// Determine which method to execute
+		val executeMethod = methodToExecute ?: currentCommand?.getExecuteMethod()
+		val executeMethodParams = executeMethod?.parameters
+
 		// Parse method parameters and handle CommandSender or Player specifically
-		val executeMethodParams = currentCommand?.getExecuteMethodParams()
 		val parsedContext: MutableList<Any?> = mutableListOf()
 
 		executeMethodParams?.forEachIndexed { index, param ->
@@ -169,11 +182,12 @@ class MCommandManager: TabExecutor {
 					parsedContext.add(parseSenderContext(param.type, sender))
 				}
 				else -> {
-					if (index < args.size) {
+					if (i < args.size) {
 						// Argument provided, parse based on expected type
 						try {
-							val context = parseContext(param.type, sender, args.copyOfRange(index, args.size), false)
+							val context = parseContext(param.type, sender, args.copyOfRange(i, args.size), false)
 							parsedContext.add(context)
+							i++
 						} catch (e: ContextResolverFailedException) {
 							Chat.tell(sender, "&c${e.message}")
 							return false
@@ -192,9 +206,9 @@ class MCommandManager: TabExecutor {
 
 		// Execute the command method with parsed parameters
 		if (parsedContext.isNotEmpty()) {
-			currentCommand?.getExecuteMethod()?.invoke(currentCommand, *parsedContext.toTypedArray())
+			executeMethod?.invoke(currentCommand, *parsedContext.toTypedArray())
 		} else {
-			currentCommand?.getExecuteMethod()?.invoke(currentCommand)
+			executeMethod?.invoke(currentCommand)
 		}
 		return true
 	}
@@ -264,6 +278,14 @@ class MCommandManager: TabExecutor {
 				currentCommand?.getSubCommands()?.flatMap { it.getAliases().filter { alias -> alias.startsWith(args.last()) } } ?: listOf()
 			)
 		}
+
+		// Include both subcommands and subcommand methods in completions
+		if (completions.isEmpty() && args.size <= 1) {
+			completions.addAll(
+				currentCommand?.getAllSubcommandAliases()?.filter { it.startsWith(args.last()) } ?: listOf()
+			)
+		}
+
 
 		return completions.distinct().toMutableList()
 	}
