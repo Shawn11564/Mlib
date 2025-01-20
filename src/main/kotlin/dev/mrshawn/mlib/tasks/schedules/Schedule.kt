@@ -31,6 +31,10 @@ class Schedule(
 		return times
 	}
 
+	fun clear() {
+		times.clear()
+	}
+
 	fun shouldRun(): Boolean {
 		return !onCooldown && times.any { it.isCurrentTime(calendar.getCalendar()) }
 	}

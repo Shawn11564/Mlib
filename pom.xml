@@ -6,7 +6,7 @@
 
 	<groupId>dev.mrshawn</groupId>
 	<artifactId>mlib</artifactId>
-	<version>0.0.211</version>
+	<version>0.0.212</version>
 	<packaging>jar</packaging>
 
 	<name>Mlib</name>
