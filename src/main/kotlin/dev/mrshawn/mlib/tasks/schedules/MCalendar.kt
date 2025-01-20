@@ -56,19 +56,19 @@ class MCalendar(
 
 		companion object {
 			fun getDay(calendarDay: Int): Day {
-				return values().first { it.calendarDay == calendarDay }
+				return entries.first { it.calendarDay == calendarDay }
 			}
 
 			fun getDay(simpleName: String): Day {
-				return values().first { it.simpleName == simpleName }
+				return entries.first { it.simpleName.equals(simpleName, true) }
 			}
 
 			fun isDay(simpleName: String): Boolean {
-				return values().any { it.simpleName == simpleName }
+				return entries.any { it.simpleName.equals(simpleName, true) }
 			}
 
 			fun isDay(calendarDay: Int): Boolean {
-				return values().any { it.calendarDay == calendarDay }
+				return entries.any { it.calendarDay == calendarDay }
 			}
 		}
 
