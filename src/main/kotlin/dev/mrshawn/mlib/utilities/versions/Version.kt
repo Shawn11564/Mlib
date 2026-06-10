@@ -7,6 +7,8 @@ enum class Version(
 	private val versionWeight: Int
 ) {
 
+	V1_21("1.21", 14),
+	V1_20("1.20", 13),
 	V1_19("1.19", 12),
 	V1_18("1.18", 11),
 	V1_17("1.17", 10),

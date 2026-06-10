@@ -1,6 +1,8 @@
 package dev.mrshawn.mlib.tasks.schedules
 
+import dev.mrshawn.mlib.tasks.ScheduledMTask
 import org.bukkit.configuration.serialization.ConfigurationSerializable
+import org.bukkit.plugin.java.JavaPlugin
 
 class Schedule(
 	private val calendar: MCalendar
@@ -43,6 +45,29 @@ class Schedule(
 		return mutableMapOf(
 			"times" to times.map { it.serialize() },
 		)
+	}
+
+	class Builder {
+		private var calendar: MCalendar? = null
+		private var schedule: Schedule? = null
+
+		fun init(plugin: JavaPlugin, timeZone: String, checkInterval: Int): Builder {
+			calendar = MCalendar(plugin, timeZone, checkInterval)
+			schedule = Schedule(calendar!!)
+			return this
+		}
+
+		fun withTask(): ScheduledMTask.Builder {
+			val calendar = checkNotNull(this.calendar) { "init() must be called before withTask()" }
+			return ScheduledMTask.Builder().init(calendar)
+		}
+
+		fun build(): Schedule {
+			if (schedule == null) {
+				throw IllegalStateException("init() must be called before build()")
+			}
+			return schedule!!
+		}
 	}
 
 }
