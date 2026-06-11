@@ -16,6 +16,16 @@ object SoundUtils {
 		player.playSound(player.location, sound, 1f, 1f)
 	}
 
+	fun playSound(player: HumanEntity, sound: Sound, volume: Float, pitch: Float) {
+		if (player is Player) {
+			playSound(player, sound, volume, pitch)
+		}
+	}
+
+	fun playSound(player: Player, sound: Sound, volume: Float, pitch: Float) {
+		player.playSound(player.location, sound, volume, pitch)
+	}
+
 	fun isSound(sound: String): Boolean {
 		return Sound.values().map { it.name }.contains(sound.uppercase())
 	}

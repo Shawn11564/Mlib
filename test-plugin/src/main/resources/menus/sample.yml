@@ -1,0 +1,120 @@
+# Sample mlib menu project used by /menutest (MlibChatTest).
+# Exercises chaining, every item kind, the action vocabulary, a custom hook, and a paginated pane.
+formatVersion: 1
+project: mlib-sample
+
+menus:
+
+  main_menu:
+    title: "&8&lMain Menu"
+    type: chest
+    rows: 3
+    nextMenu: list_menu          # auto lime-wool "Next Menu" button at (8,0)
+    fill:
+      item: { material: BLACK_STAINED_GLASS_PANE, name: " " }
+    items:
+      - x: 2
+        y: 1
+        kind: glowing            # glows only for operators
+        glowCondition: "op"
+        item:
+          material: DIAMOND
+          name: "&bShiny (ops only glow)"
+          lore: ["&7Glows when you are op."]
+        actions:
+          left: [ { type: MESSAGE, text: "&bYou clicked the diamond." } ]
+      - x: 4
+        y: 1
+        kind: basic
+        item:
+          material: COMPASS
+          name: "&aSettings"
+          lore: ["&7Left-click to open settings.", "&7Right-click for a tip."]
+        actions:
+          left:  [ { type: PLAY_SOUND, sound: UI_BUTTON_CLICK }, { type: OPEN_MENU, menu: settings_menu } ]
+          right: [ { type: ACTIONBAR, text: "&7Tip: shift-click does more!" } ]
+      - x: 6
+        y: 1
+        kind: basic
+        item:
+          material: EMERALD
+          name: "&aGive me a diamond"
+        actions:
+          left: [ { type: GIVE_ITEM, item: { material: DIAMOND, name: "&bFree Diamond" }, amount: 1 } ]
+
+  settings_menu:
+    title: "&8Settings"
+    type: chest
+    rows: 3
+    previousMenu: main_menu       # auto red-wool "Previous Menu" button at (0,0)
+    items:
+      - x: 2
+        y: 1
+        kind: toggle
+        initiallyToggledOn: false
+        on:
+          item: { material: LIME_DYE, name: "&aFeature: ON" }
+          actions: { left: [ { type: MESSAGE, text: "&aTurned the feature ON." } ] }
+        off:
+          item: { material: GRAY_DYE, name: "&7Feature: OFF" }
+          actions: { left: [ { type: MESSAGE, text: "&7Turned the feature OFF." } ] }
+      - x: 4
+        y: 1
+        kind: cycle
+        states:
+          - { item: { material: GREEN_WOOL, name: "&aMode: Easy" } }
+          - { item: { material: YELLOW_WOOL, name: "&eMode: Normal" } }
+          - { item: { material: RED_WOOL, name: "&cMode: Hard" } }
+      - x: 6
+        y: 1
+        kind: twoStage
+        item: { material: TNT, name: "&cReset (click twice)" }
+        glowOnFirstClick: true
+        secondClickActions:
+          default:
+            - { type: CUSTOM, id: demoConfirm, data: { what: "reset", value: 42 } }
+            - { type: CLOSE }
+
+  list_menu:
+    title: "&8Paginated List"
+    type: chest
+    rows: 6
+    previousMenu: main_menu
+    fillAreas:
+      - x: 0
+        y: 5
+        width: 9
+        height: 1
+        item:
+          item: { material: GRAY_STAINED_GLASS_PANE, name: " " }
+    panes:
+      - kind: paginated
+        x: 1
+        y: 1
+        width: 7
+        height: 3
+        contents:
+          - { item: { material: PAPER, name: "&fEntry 1" }, actions: { left: [ { type: MESSAGE, text: "&7Clicked entry 1" } ] } }
+          - { item: { material: PAPER, name: "&fEntry 2" }, actions: { left: [ { type: MESSAGE, text: "&7Clicked entry 2" } ] } }
+          - { item: { material: PAPER, name: "&fEntry 3" } }
+          - { item: { material: PAPER, name: "&fEntry 4" } }
+          - { item: { material: PAPER, name: "&fEntry 5" } }
+          - { item: { material: PAPER, name: "&fEntry 6" } }
+          - { item: { material: PAPER, name: "&fEntry 7" } }
+          - { item: { material: PAPER, name: "&fEntry 8" } }
+          - { item: { material: PAPER, name: "&fEntry 9" } }
+          - { item: { material: PAPER, name: "&fEntry 10" } }
+          - { item: { material: PAPER, name: "&fEntry 11" } }
+          - { item: { material: PAPER, name: "&fEntry 12" } }
+          - { item: { material: PAPER, name: "&fEntry 13" } }
+          - { item: { material: PAPER, name: "&fEntry 14" } }
+          - { item: { material: PAPER, name: "&fEntry 15" } }
+          - { item: { material: PAPER, name: "&fEntry 16" } }
+          - { item: { material: PAPER, name: "&fEntry 17" } }
+          - { item: { material: PAPER, name: "&fEntry 18" } }
+          - { item: { material: PAPER, name: "&fEntry 19" } }
+          - { item: { material: PAPER, name: "&fEntry 20" } }
+        navigation:
+          prevButton: { slot: { x: 0, y: 5 }, item: { material: ARROW, name: "&cPrevious Page" } }
+          nextButton: { slot: { x: 8, y: 5 }, item: { material: ARROW, name: "&aNext Page" } }
+          pageIndicator: { slot: { x: 4, y: 5 } }

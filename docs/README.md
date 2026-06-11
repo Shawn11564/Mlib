@@ -12,6 +12,7 @@ API.
 | [Commands](Commands.md) | Annotation-driven command framework — self-registering commands (no `plugin.yml`), auto-parsed arguments, nested subcommands, tab-completion, and permission/sender preconditions. |
 | [Chat & Messaging](Chat.md) | Color (`&` + hex), MiniMessage, titles/action bars, plugin-labelled logging, and PlaceholderAPI — delivered via Adventure (Paper-native when available). |
 | [GUIs](GUIs.md) | Inventory menu system — `ChestGui`, clickable `GuiItem`s (toggle/cycle/two-stage/updating), static & paginated panes, and high-level `Menu` navigation. |
+| [Menu Format & Loader](MenuFormat.md) | Declarative YAML/JSON menus loaded at runtime via `MenuLoader`, with a full action vocabulary and custom-action hooks — designed visually in the [web editor](../editor). |
 | [Item Builders](ItemBuilders.md) | Fluent `ItemStack` builders for general items, player heads, potions, and banners — with auto color codes, conditional lore, glow, and persistent data. |
 | [Scoreboards](Scoreboards.md) | Index-addressed sidebar scoreboards — per-player (`KPlayerBoard`) and shared (`KGlobalBoard`) behind one `KBoard` interface. |
 | [Scheduling & Tasks](Scheduling.md) | Wall-clock scheduling — run tasks at real calendar times in any time zone, with serializable schedules, plus `MTask`/`TaskChain` primitives. |

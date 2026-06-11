@@ -4,6 +4,8 @@ import dev.mrshawn.mlib.chat.Chat
 import dev.mrshawn.mlib.chat.TextMessage
 import dev.mrshawn.mlib.chat.TextReplacement
 import dev.mrshawn.mlib.chat.platform.PaperNativePlatform
+import dev.mrshawn.mlib.guis.serialization.MenuHooks
+import dev.mrshawn.mlib.guis.serialization.MenuLoader
 import org.bukkit.command.Command
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
@@ -28,6 +30,14 @@ class ChatTestPlugin : JavaPlugin() {
 		Chat.log("&aChatTest enabled with &#55FF55hex &alogging support")
 		// End-to-end send through the active platform, to the console audience.
 		Chat.tellMini(server.consoleSender, "<green>Platform send OK via ${Chat.activePlatform()}</green>")
+
+		// --- Menu format test wiring ---
+		// Copy the bundled sample menu into the data folder so MenuLoader can read it.
+		saveResource("menus/sample.yml", false)
+		// A custom action the sample's two-stage TNT button invokes by id.
+		MenuHooks.registerAction("demoConfirm") { ctx ->
+			Chat.tell(ctx.player, "&aCustom action 'demoConfirm' fired! data=${ctx.data}")
+		}
 	}
 
 	override fun onDisable() {
@@ -35,6 +45,17 @@ class ChatTestPlugin : JavaPlugin() {
 	}
 
 	override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<out String>): Boolean {
+		if (command.name.equals("menutest", ignoreCase = true)) {
+			if (sender !is Player) {
+				Chat.tell(sender, "&cRun /menutest as a player.")
+				return true
+			}
+			// Loads the sample project and opens the first (main) menu. Click through to test
+			// chaining, toggles, the two-stage custom action, and the paginated list.
+			MenuLoader.load(this, "menus/sample.yml").open("main_menu", sender)
+			return true
+		}
+
 		when (args.getOrNull(0)?.lowercase() ?: "help") {
 			"legacy" ->
 				Chat.tell(sender, "&aLegacy &bcolors&r, &cand &#FF8800hex &#33CCFFcodes&r work together")

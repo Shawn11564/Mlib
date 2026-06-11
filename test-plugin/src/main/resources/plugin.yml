@@ -9,3 +9,6 @@ commands:
   chattest:
     description: Exercise Mlib Chat features.
     usage: /chattest <legacy|mini|actionbar|title|broadcast|clear|template|papi|platform>
+  menutest:
+    description: Open the sample mlib-format menu (tests the declarative menu loader).
+    usage: /menutest

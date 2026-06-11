@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mrshawn.dev/schema/menu-schema.json",
+  "title": "mlib menu format",
+  "description": "Declarative format for mlib inventory GUIs. Loaded at runtime by dev.mrshawn.mlib.guis.serialization.MenuLoader and authored by the visual editor. formatVersion is mirrored in MenuFormat.kt (FORMAT_VERSION) and editor/src/model/types.ts.",
+  "type": "object",
+  "properties": {
+    "formatVersion": { "type": "integer", "const": 1, "description": "Major version of the format. Must match the mlib version's FORMAT_VERSION." },
+    "project": { "type": "string", "description": "Optional project name/id." },
+    "menus": {
+      "type": "object",
+      "description": "Menus keyed by id. Ids are referenced by chaining (previousMenu/nextMenu) and OPEN_MENU actions.",
+      "additionalProperties": { "$ref": "#/$defs/menu" }
+    }
+  },
+  "required": ["formatVersion"],
+  "$defs": {
+    "menu": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Inventory title. Supports & color codes and &#RRGGBB hex." },
+        "type": { "type": "string", "enum": ["chest"], "default": "chest" },
+        "rows": { "type": "integer", "minimum": 1, "maximum": 6, "default": 6 },
+        "previousMenu": { "type": ["string", "null"], "description": "Menu id opened by the auto 'Previous Menu' button / BACK action." },
+        "nextMenu": { "type": ["string", "null"], "description": "Menu id opened by the auto 'Next Menu' button / NEXT action." },
+        "fill": { "$ref": "#/$defs/itemNode", "description": "Background item placed in every slot first." },
+        "fillAreas": { "type": "array", "items": { "$ref": "#/$defs/fillArea" } },
+        "items": { "type": "array", "items": { "$ref": "#/$defs/itemNode" } },
+        "panes": { "type": "array", "items": { "$ref": "#/$defs/pane" } }
+      },
+      "additionalProperties": false
+    },
+    "fillArea": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "integer", "minimum": 0, "maximum": 8 },
+        "y": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "width": { "type": "integer", "minimum": 1, "maximum": 9, "description": "Column COUNT." },
+        "height": { "type": "integer", "minimum": 1, "maximum": 6, "description": "Row COUNT." },
+        "item": { "$ref": "#/$defs/itemNode" }
+      },
+      "required": ["x", "y", "width", "height", "item"],
+      "additionalProperties": false
+    },
+    "itemNode": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "integer", "minimum": 0, "maximum": 8 },
+        "y": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "kind": { "type": "string", "enum": ["basic", "glowing", "updating", "toggle", "cycle", "twoStage"], "default": "basic" },
+        "item": { "$ref": "#/$defs/appearance" },
+        "actions": { "$ref": "#/$defs/actionSet" },
+        "glowCondition": { "$ref": "#/$defs/condition", "description": "glowing only: glows when this condition passes." },
+        "initiallyToggledOn": { "type": "boolean", "description": "toggle only." },
+        "toggleOnClick": { "type": "boolean", "description": "toggle only." },
+        "on": { "$ref": "#/$defs/itemNode", "description": "toggle only: the ON state item." },
+        "off": { "$ref": "#/$defs/itemNode", "description": "toggle only: the OFF state item." },
+        "cycleOnClick": { "type": "boolean", "description": "cycle only." },
+        "states": { "type": "array", "items": { "$ref": "#/$defs/itemNode" }, "description": "cycle only: ordered states." },
+        "glowOnFirstClick": { "type": "boolean", "description": "twoStage only." },
+        "secondClickActions": { "$ref": "#/$defs/actionSet", "description": "twoStage only: runs on the second (confirm) click." }
+      },
+      "additionalProperties": false
+    },
+    "appearance": {
+      "type": "object",
+      "description": "How an item looks. Maps to mlib's ItemBuilder family. material may be a Bukkit Material name, or 'hook:<id>' for a code-provided icon (MenuHooks.registerItem).",
+      "properties": {
+        "material": { "type": "string", "default": "STONE" },
+        "amount": { "type": "integer", "minimum": 1, "maximum": 64, "default": 1 },
+        "name": { "type": "string" },
+        "lore": { "type": "array", "items": { "type": "string" } },
+        "enchantments": { "type": "array", "items": { "$ref": "#/$defs/enchantment" } },
+        "glow": { "type": "boolean", "default": false },
+        "customModelData": { "type": "integer" },
+        "itemFlags": { "type": "array", "items": { "type": "string" } },
+        "hideAttributes": { "type": "boolean", "default": false },
+        "skull": { "$ref": "#/$defs/skull" },
+        "potion": { "$ref": "#/$defs/potion" },
+        "banner": { "$ref": "#/$defs/banner" }
+      },
+      "additionalProperties": false
+    },
+    "enchantment": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "description": "Bukkit enchantment key (e.g. 'sharpness') or legacy name (e.g. 'DAMAGE_ALL')." },
+        "level": { "type": "integer", "default": 1 }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+    "skull": {
+      "type": "object",
+      "properties": {
+        "owner": { "type": "string", "description": "Player name, UUID, or 'mhf:MHF_QUESTION' for a decorative head." },
+        "texture": { "type": "string", "description": "Base64 texture value (not yet applied by the loader; use MenuHooks.registerItem)." }
+      },
+      "additionalProperties": false
+    },
+    "potion": {
+      "type": "object",
+      "properties": {
+        "color": { "type": "string", "description": "Hex color, e.g. '#FF0000'." },
+        "effects": { "type": "array", "items": { "$ref": "#/$defs/potionEffect" } }
+      },
+      "additionalProperties": false
+    },
+    "potionEffect": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "description": "PotionEffectType name (e.g. 'SPEED')." },
+        "duration": { "type": "integer", "description": "Ticks.", "default": 200 },
+        "amplifier": { "type": "integer", "default": 0 }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+    "banner": {
+      "type": "object",
+      "properties": {
+        "patterns": { "type": "array", "items": { "$ref": "#/$defs/bannerPattern" } }
+      },
+      "additionalProperties": false
+    },
+    "bannerPattern": {
+      "type": "object",
+      "properties": {
+        "color": { "type": "string", "description": "DyeColor name (e.g. 'RED')." },
+        "pattern": { "type": "string", "description": "PatternType name (e.g. 'STRIPE_TOP')." }
+      },
+      "required": ["color", "pattern"],
+      "additionalProperties": false
+    },
+    "pane": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["static", "paginated"], "default": "static" },
+        "x": { "type": "integer", "minimum": 0, "maximum": 8 },
+        "y": { "type": "integer", "minimum": 0, "maximum": 5 },
+        "width": { "type": "integer", "minimum": 1, "maximum": 9, "description": "Column COUNT." },
+        "height": { "type": "integer", "minimum": 1, "maximum": 6, "description": "Row COUNT." },
+        "priority": { "type": "string", "enum": ["HIGHEST", "HIGH", "NORMAL", "LOW", "LOWEST"], "default": "NORMAL" },
+        "clearOld": { "type": "boolean", "default": true },
+        "contents": { "type": "array", "items": { "$ref": "#/$defs/itemNode" } },
+        "navigation": { "$ref": "#/$defs/paneNav" }
+      },
+      "required": ["x", "y", "width", "height"],
+      "additionalProperties": false
+    },
+    "paneNav": {
+      "type": "object",
+      "properties": {
+        "nextButton": { "$ref": "#/$defs/navButton" },
+        "prevButton": { "$ref": "#/$defs/navButton" },
+        "pageIndicator": { "$ref": "#/$defs/navSlot" }
+      },
+      "additionalProperties": false
+    },
+    "navButton": {
+      "type": "object",
+      "properties": {
+        "slot": { "$ref": "#/$defs/navSlot" },
+        "item": { "$ref": "#/$defs/appearance" }
+      },
+      "additionalProperties": false
+    },
+    "navSlot": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "integer", "minimum": 0, "maximum": 8 },
+        "y": { "type": "integer", "minimum": 0, "maximum": 5 }
+      },
+      "required": ["x", "y"],
+      "additionalProperties": false
+    },
+    "actionSet": {
+      "type": "object",
+      "description": "Actions for an item. requirements gate all clicks; the matching click-type branch runs (else default).",
+      "properties": {
+        "requirements": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+        "denyActions": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "default": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "left": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "right": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "shiftLeft": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "shiftRight": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "middle": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "drop": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "doubleClick": { "type": "array", "items": { "$ref": "#/$defs/action" } }
+      },
+      "additionalProperties": false
+    },
+    "action": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["RUN_COMMAND", "MESSAGE", "BROADCAST", "ACTIONBAR", "TITLE", "PLAY_SOUND", "OPEN_MENU", "CLOSE", "BACK", "NEXT", "GIVE_ITEM", "CONSOLE_LOG", "CONDITIONAL", "CANCEL", "ALLOW", "CUSTOM"]
+        },
+        "command": { "type": "string" },
+        "as": { "type": "string", "enum": ["PLAYER", "CONSOLE"] },
+        "text": { "type": "string" },
+        "lines": { "type": "array", "items": { "type": "string" } },
+        "mini": { "type": "boolean", "description": "Render text as MiniMessage." },
+        "permission": { "type": "string", "description": "BROADCAST: restrict to this permission." },
+        "title": { "type": "string" },
+        "subtitle": { "type": "string" },
+        "fadeIn": { "type": "integer" },
+        "stay": { "type": "integer" },
+        "fadeOut": { "type": "integer" },
+        "sound": { "type": "string" },
+        "volume": { "type": "number" },
+        "pitch": { "type": "number" },
+        "menu": { "type": "string", "description": "OPEN_MENU: target menu id." },
+        "item": { "$ref": "#/$defs/appearance", "description": "GIVE_ITEM: the item to give." },
+        "amount": { "type": "integer" },
+        "level": { "type": "string", "enum": ["INFO", "WARN", "SEVERE"] },
+        "id": { "type": "string", "description": "CUSTOM: id matched to MenuHooks.registerAction." },
+        "data": { "type": "object", "description": "CUSTOM: arbitrary parameters passed to the handler." },
+        "if": { "$ref": "#/$defs/condition", "description": "CONDITIONAL." },
+        "then": { "type": "array", "items": { "$ref": "#/$defs/action" } },
+        "else": { "type": "array", "items": { "$ref": "#/$defs/action" } }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+    "condition": {
+      "description": "A requirement. Either a shorthand string ('permission:node', 'op', 'gamemode:CREATIVE', 'world:world', 'placeholder:%x% == y', 'custom:id') or an object form.",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "properties": {
+            "type": { "type": "string", "enum": ["permission", "placeholder", "gamemode", "world", "op", "custom", "all", "any", "not"] },
+            "value": { "type": "string" },
+            "all": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+            "any": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+            "not": { "$ref": "#/$defs/condition" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  }
+}

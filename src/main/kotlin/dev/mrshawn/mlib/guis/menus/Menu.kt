@@ -9,9 +9,15 @@ import org.bukkit.entity.HumanEntity
 import org.bukkit.entity.Player
 
 abstract class Menu(
-	protected val previousMenu: Menu? = null,
-	protected val nextMenu: Menu? = null
+	previousMenu: Menu? = null,
+	nextMenu: Menu? = null
 ) {
+
+	// Held as vars (not constructor vals) so data-driven menus can be linked after construction,
+	// once every menu in a project has been instantiated (see guis.serialization.MenuLoader).
+	// Existing subclasses that pass these to the constructor are unaffected.
+	protected var previousMenu: Menu? = previousMenu
+	protected var nextMenu: Menu? = nextMenu
 
 	companion object {
 		fun rebuild(menuClass: Class<out Menu>) {
