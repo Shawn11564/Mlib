@@ -1,0 +1,65 @@
+name: Tag & release on master
+
+# On every push/merge to master, cut a Git tag + GitHub Release named after the pom.xml <version>,
+# but only when that version is new (no existing tag). This automates the manual tagging you do today
+# (tags 0.1.0, 0.0.214, … match the pom version). JitPack then builds that tag on demand — nothing is
+# uploaded to JitPack; the tag just has to exist and be buildable.
+#
+# To cut a release: bump <version> in pom.xml and merge to master. Pushes that don't change the
+# version are a no-op.
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history + tags so the existence check works
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8' # mirrors jitpack.yml (openjdk8) so a green build here means JitPack will build too
+          cache: maven
+
+      - name: Resolve project version
+        id: ver
+        run: echo "version=$(mvn -q -DforceStdout help:evaluate -Dexpression=project.version)" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether this version is already tagged
+        id: check
+        run: |
+          if git rev-parse "refs/tags/${{ steps.ver.outputs.version }}" >/dev/null 2>&1; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+            echo "Version ${{ steps.ver.outputs.version }} is already tagged — nothing to release."
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build & test (gate — a tag is only cut if this passes)
+        if: steps.check.outputs.new == 'true'
+        run: mvn -B -ntp verify
+
+      - name: Create tag & GitHub Release
+        if: steps.check.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="${{ steps.ver.outputs.version }}"
+          gh release create "$VERSION" \
+            --target "${{ github.sha }}" \
+            --title "$VERSION" \
+            --notes "Automated release of \`$VERSION\`.
+
+          Use via JitPack (built on demand):
+          \`\`\`
+          maven { url 'https://jitpack.io' }
+          implementation 'com.github.${{ github.repository_owner }}:${{ github.event.repository.name }}:$VERSION'
+          \`\`\`"

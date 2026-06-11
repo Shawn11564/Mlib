@@ -111,3 +111,11 @@ buildNumber.properties
 
 # Common working directory
 run/
+
+# Web editor (Node) — see /editor
+editor/node_modules/
+editor/dist/
+editor/.vite/
+editor/assets-cache/
+*.local
+.env*.local

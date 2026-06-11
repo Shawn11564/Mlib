@@ -1,0 +1,68 @@
+name: Deploy editor
+
+# Builds the /editor static site and publishes it to GitHub Pages. JitPack never runs Actions and
+# only reads pom.xml, so this workflow is invisible to library publishing. Triggers only when the
+# editor, schema, or this workflow change.
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'editor/**'
+      - 'schema/**'
+      - '.github/workflows/deploy-editor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: formatVersion is in sync across schema, Kotlin, and TS
+        run: |
+          SCHEMA=$(grep -oP '"formatVersion"[^}]*"const":\s*\K[0-9]+' schema/menu-schema.json | head -1)
+          KT=$(grep -oP 'FORMAT_VERSION\s*=\s*\K[0-9]+' src/main/kotlin/dev/mrshawn/mlib/guis/serialization/MenuFormat.kt | head -1)
+          TS=$(grep -oP 'FORMAT_VERSION\s*=\s*\K[0-9]+' editor/src/model/types.ts | head -1)
+          echo "schema=$SCHEMA kotlin=$KT ts=$TS"
+          if [ "$SCHEMA" != "$KT" ] || [ "$KT" != "$TS" ]; then
+            echo "::error::formatVersion mismatch across schema/Kotlin/TS"
+            exit 1
+          fi
+
+  build:
+    needs: format-check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: editor
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: editor/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: editor/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

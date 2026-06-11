@@ -6,7 +6,7 @@
 
 	<groupId>dev.mrshawn</groupId>
 	<artifactId>mlib</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 	<packaging>jar</packaging>
 
 	<name>Mlib</name>
@@ -29,7 +29,13 @@
 
 	<build>
 		<sourceDirectory>src/main/kotlin</sourceDirectory>
+		<testSourceDirectory>src/test/kotlin</testSourceDirectory>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.2.5</version>
+			</plugin>
 			<plugin>
 				<groupId>org.jetbrains.kotlin</groupId>
 				<artifactId>kotlin-maven-plugin</artifactId>
@@ -134,6 +140,13 @@
 			<groupId>org.jetbrains.kotlin</groupId>
 			<artifactId>kotlin-reflect</artifactId>
 			<version>2.0.20</version>
+		</dependency>
+		<!-- Test-only: deterministic parse tests for the menu format (no Bukkit needed). -->
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<version>5.10.2</version>
+			<scope>test</scope>
 		</dependency>
 		<!-- Bundled with Spigot/Paper at runtime; declared here for compile-time use by Kson. -->
 		<dependency>

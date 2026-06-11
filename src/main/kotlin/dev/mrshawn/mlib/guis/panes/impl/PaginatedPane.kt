@@ -48,7 +48,10 @@ class PaginatedPane(
 	override fun fillWith(items: Collection<GuiItem>) {
 		if (items.isEmpty()) return
 
-		val itemsPerPage = width * height
+		// width/height are the inclusive last col/row indices (see StaticPane's fill loops), so the
+		// real per-page capacity is the covered area, not width*height. This matches StaticPane for
+		// any x/y origin (and is identical to the old value for the common x=1,y=1 case).
+		val itemsPerPage = (width - x + 1) * (height - y + 1)
 		val pagesNeeded = max(ceil(items.size / itemsPerPage.toDouble()).toInt(), 1)
 
 		val itemSets = items.chunked(itemsPerPage)
