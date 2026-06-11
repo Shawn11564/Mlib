@@ -17,8 +17,9 @@ abstract class Menu(
 		fun rebuild(menuClass: Class<out Menu>) {
 			val instances = getInstances(menuClass)
 			instances.forEach { menuInstance ->
-				val viewers = menuInstance.gui.getViewers()
-				viewers.forEach { _ ->
+				// Only rebuild menus that are currently being viewed, and rebuild once
+				// regardless of how many players are looking at it.
+				if (menuInstance.gui.getViewers().isNotEmpty()) {
 					menuInstance.gui.clear()
 					menuInstance.createGui()
 					menuInstance.gui.update()
@@ -71,7 +72,6 @@ abstract class Menu(
 	fun show(player: HumanEntity, reCreateOnShow: Boolean = true, clearOnShow: Boolean = true) {
 		if (clearOnShow) gui.clear()
 		if (reCreateOnShow) createGui()
-		createGui()
 		setNextAndBackButtons()
 		gui.open(player)
 	}

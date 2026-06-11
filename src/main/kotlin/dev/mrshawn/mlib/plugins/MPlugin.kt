@@ -17,7 +17,9 @@ abstract class MPlugin: JavaPlugin() {
 
 	override fun onEnable() {
 		instance = getProvidingPlugin(MPlugin::class.java) as MPlugin
-		Chat.setLogProvider(instance.name)
+		// Adopts the plugin logger (so logs are labelled with the plugin name), creates the
+		// Adventure platform, and detects PlaceholderAPI.
+		Chat.init(this)
 
 		if (!dataFolder.exists()) dataFolder.mkdir()
 
@@ -30,6 +32,7 @@ abstract class MPlugin: JavaPlugin() {
 
 	override fun onDisable() {
 		postDisable()
+		Chat.shutdown()
 	}
 
 	open fun postEnable() {}

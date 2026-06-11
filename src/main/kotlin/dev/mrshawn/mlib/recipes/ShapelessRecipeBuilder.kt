@@ -35,8 +35,12 @@ class ShapelessRecipeBuilder {
 	}
 
 	fun build(): ShapelessRecipe {
+		require(ingredients.isNotEmpty()) { "ShapelessRecipeBuilder requires at least one ingredient before build()" }
+
+		// `id` and `result` are lateinit: if id()/result() were not called, accessing
+		// them throws a clear UninitializedPropertyAccessException.
 		val recipe = ShapelessRecipe(NamespacedKey(JavaPlugin.getProvidingPlugin(this.javaClass), id), result)
-		recipe.addIngredient(RecipeChoice.MaterialChoice())
+		ingredients.forEach { recipe.addIngredient(it) }
 		return recipe
 	}
 

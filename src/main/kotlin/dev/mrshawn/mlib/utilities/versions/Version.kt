@@ -27,7 +27,7 @@ enum class Version(
 
 		fun getCurrentVersion(): Version {
 			val version = Bukkit.getServer().version
-			return values().firstOrNull { version.contains(it.versionName) } ?: UNKNOWN
+			return entries.firstOrNull { it != UNKNOWN && version.contains(it.versionName) } ?: UNKNOWN
 		}
 
 		fun isAtLeast(version: Version): Boolean {
