@@ -11,7 +11,7 @@ version = "1.0.0"
 
 // The Mlib version to test against. Must match the root pom.xml <version>.
 // Build it locally first:  (from the repo root)  mvn install
-val mlibVersion = "0.1.0"
+val mlibVersion = "0.2.0"
 
 repositories {
 	mavenLocal() // resolves the locally-installed Mlib artifact (`mvn install` in the repo root)
