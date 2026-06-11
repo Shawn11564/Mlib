@@ -24,7 +24,11 @@ abstract class Pane(
 
 	class PaneComparator: Comparator<Pane> {
 		override fun compare(paneOne: Pane, paneTwo: Pane): Int {
-			return paneOne.priority.compareTo(paneTwo.priority)
+			// Sort by priority first; break ties on uuid so two panes with the same
+			// priority are treated as distinct (a TreeSet drops elements that compare == 0).
+			val priorityComparison = paneOne.priority.compareTo(paneTwo.priority)
+			if (priorityComparison != 0) return priorityComparison
+			return paneOne.uuid.compareTo(paneTwo.uuid)
 		}
 	}
 

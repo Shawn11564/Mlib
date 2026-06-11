@@ -15,6 +15,7 @@ import org.bukkit.event.Listener
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryDragEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
@@ -121,6 +122,15 @@ abstract class Gui(
 		menuItem.getOnClick().accept(event)
 		if (menuItem.updateOnClick) {
 			inventory.setItem(event.rawSlot, menuItem.getDisplayedItem())
+		}
+	}
+
+	@EventHandler
+	fun onDragEvent(event: InventoryDragEvent) {
+		// Cancel drags that touch any slot of this GUI so items can't be smeared in.
+		if (event.view.topInventory != inventory) return
+		if (event.rawSlots.any { it < inventory.size }) {
+			event.isCancelled = true
 		}
 	}
 

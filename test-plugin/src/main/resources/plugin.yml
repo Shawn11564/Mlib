@@ -1,0 +1,11 @@
+name: MlibChatTest
+version: 1.0.0
+main: dev.mrshawn.mlib.test.ChatTestPlugin
+api-version: "1.20"
+description: Manual test harness for Mlib's Chat system (color/hex, MiniMessage, titles, logging, PAPI).
+author: MrShawn
+softdepend: [PlaceholderAPI]
+commands:
+  chattest:
+    description: Exercise Mlib Chat features.
+    usage: /chattest <legacy|mini|actionbar|title|broadcast|clear|template|papi|platform>

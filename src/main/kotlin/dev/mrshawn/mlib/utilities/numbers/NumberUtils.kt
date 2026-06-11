@@ -29,10 +29,13 @@ object NumberUtils {
 		}
 	}
 
-	fun toRomanNumeral(number: Int): String? {
+	fun toRomanNumeral(number: Int): String {
+		// Roman numerals are only defined for positive integers; guard against the
+		// recursion bottoming out into a null floorKey for 0 / negatives.
+		if (number <= 0) return ""
 		val l = numeralMap.floorKey(number)
 		return if (number == l) {
-			numeralMap[number]
+			numeralMap[number] ?: ""
 		} else numeralMap[l] + toRomanNumeral(number - l)
 	}
 

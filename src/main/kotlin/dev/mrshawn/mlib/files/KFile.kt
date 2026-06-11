@@ -44,6 +44,11 @@ open class KFile(
 		loadValues()
 	}
 
+	/** Persists the current in-memory values to disk. */
+	fun save() {
+		config.save(file)
+	}
+
 	private fun loadValues() {
 		values.clear()
 		for (key in config.getKeys(true)) {

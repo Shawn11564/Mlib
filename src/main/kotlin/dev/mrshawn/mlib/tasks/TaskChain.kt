@@ -8,8 +8,7 @@ class TaskChain {
 	private val tasks = ArrayList<MTask>()
 
 	fun first(task: MTask): TaskChain {
-		tasks[0] = task
-		tasks[tasks.size - 1]
+		tasks.add(0, task)
 		return this
 	}
 

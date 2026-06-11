@@ -13,7 +13,11 @@ abstract class MCommand(
 ) {
 
 	private val subcommands = ArrayList<MCommand>()
-	private val aliases = javaClass.getAnnotation(CommandAlias::class.java).aliases.split("|").map { it.lowercase() }.toList()
+	private val aliases = javaClass.getAnnotation(CommandAlias::class.java)
+		?.aliases
+		?.split("|")
+		?.map { it.lowercase() }
+		?: emptyList()
 	private val subcommandMethods: Map<String, Method> = javaClass.methods
 		.filter { it.isAnnotationPresent(Subcommand::class.java) }
 		.flatMap { method ->
