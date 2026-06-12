@@ -2,6 +2,8 @@ package dev.mrshawn.mlib.chat.platform
 
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer
+import net.kyori.adventure.text.serializer.json.JSONOptions
+import org.bukkit.Bukkit
 import org.bukkit.command.CommandSender
 import java.lang.reflect.Method
 import java.time.Duration
@@ -21,7 +23,7 @@ import java.time.Duration
  */
 class PaperNativePlatform : ChatPlatform {
 
-	private val ourGson: GsonComponentSerializer = GsonComponentSerializer.gson()
+	private val ourGson: GsonComponentSerializer = serverCompatibleGson()
 
 	private val nativeGson: Any
 	private val nativeDeserialize: Method
@@ -99,6 +101,26 @@ class PaperNativePlatform : ChatPlatform {
 		private val GSON_SERIALIZER: String = "$ADVENTURE.text.serializer.gson.GsonComponentSerializer"
 		private val TITLE: String = "$ADVENTURE.title.Title"
 		private val TIMES: String = "$ADVENTURE.title.Title\$Times"
+
+		/**
+		 * A Gson serializer whose click/hover JSON format matches the running server's Minecraft
+		 * version. mlib ships a *newer* Adventure than most servers, and its default serializer emits
+		 * the 1.21.5+ `click_event` / `hover_event` keys. When [toNative] feeds that JSON to an older
+		 * server's native Adventure deserializer, the unknown keys are silently dropped — so hover and
+		 * click vanish while plain text and colour (whose keys never changed) survive. Pinning the
+		 * serializer to the server's data version makes both sides agree on the wire format.
+		 *
+		 * Falls back to the default serializer if the data version can't be read (very old servers).
+		 */
+		private fun serverCompatibleGson(): GsonComponentSerializer = try {
+			@Suppress("DEPRECATION")
+			val dataVersion = Bukkit.getUnsafe().dataVersion
+			GsonComponentSerializer.builder()
+				.options(JSONOptions.byDataVersion().at(dataVersion))
+				.build()
+		} catch (e: Throwable) {
+			GsonComponentSerializer.gson()
+		}
 
 		/** True when the server exposes native Adventure that accepts components directly (Paper/forks). */
 		fun isAvailable(): Boolean = try {

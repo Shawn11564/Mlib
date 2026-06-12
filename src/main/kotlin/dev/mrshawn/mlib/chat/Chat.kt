@@ -1,8 +1,17 @@
 package dev.mrshawn.mlib.chat
 
+import dev.mrshawn.mlib.chat.Chat.colorize
+import dev.mrshawn.mlib.chat.Chat.init
+import dev.mrshawn.mlib.chat.Chat.mini
+import dev.mrshawn.mlib.chat.Chat.send
+import dev.mrshawn.mlib.chat.Chat.severe
+import dev.mrshawn.mlib.chat.Chat.shutdown
+import dev.mrshawn.mlib.chat.Chat.tell
+import dev.mrshawn.mlib.chat.Chat.tellMini
 import dev.mrshawn.mlib.chat.platform.BukkitAudiencesPlatform
 import dev.mrshawn.mlib.chat.platform.ChatPlatform
 import dev.mrshawn.mlib.chat.platform.PaperNativePlatform
+import me.clip.placeholderapi.PlaceholderAPI
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -53,6 +62,8 @@ object Chat {
 	private var logger: Logger = Bukkit.getLogger()
 	private var platform: ChatPlatform? = null
 	private var placeholderApiPresent = false
+	// Latches true after the first send with no active platform, so the warning fires once, not per line.
+	private var warnedNoPlatform = false
 
 	// ---------------------------------------------------------------------------------------------
 	// Lifecycle
@@ -64,6 +75,7 @@ object Chat {
 		logger = plugin.logger
 		placeholderApiPresent = plugin.server.pluginManager.getPlugin("PlaceholderAPI") != null
 		this.platform = createPlatform(plugin, platform)
+		warnedNoPlatform = false
 	}
 
 	private fun createPlatform(plugin: JavaPlugin, requested: Platform): ChatPlatform = when (requested) {
@@ -123,25 +135,54 @@ object Chat {
 	fun send(toWhom: CommandSender?, component: Component) {
 		if (toWhom == null) return
 		val active = platform
-		if (active != null) active.sendMessage(toWhom, component)
-		else toWhom.sendMessage(LEGACY.serialize(component))
+		if (active != null) {
+			active.sendMessage(toWhom, component)
+		} else {
+			warnNoPlatformOnce()
+			toWhom.sendMessage(LEGACY.serialize(component))
+		}
 	}
 
-	fun tell(toWhom: CommandSender?, message: String?) {
-		if (toWhom == null || message.isNullOrEmpty()) return
-		send(toWhom, legacy(message, toWhom as? Player))
+	/**
+	 * Warns (once) that Chat is delivering without an active platform, i.e. [init] never ran for this
+	 * plugin. mlib is shaded into each plugin, so every plugin owns a separate [Chat] singleton and must
+	 * call [init] itself — a sibling plugin's init does nothing here. In this state messages fall back to
+	 * plain legacy text: MiniMessage interactivity (hover/click) is dropped and PlaceholderAPI is skipped.
+	 */
+	private fun warnNoPlatformOnce() {
+		if (warnedNoPlatform) return
+		warnedNoPlatform = true
+		logger.log(
+			Level.WARNING,
+			"Chat is sending without an active platform — Chat.init(plugin) was not called for this plugin. " +
+				"Messages fall back to plain legacy text: hover/click and other MiniMessage interactivity are " +
+				"dropped and PlaceholderAPI is not resolved. Call Chat.init(this) in onEnable() (and " +
+				"Chat.shutdown() in onDisable), or extend MPlugin. Note: mlib is shaded per-plugin, so each " +
+				"plugin must init its own Chat — initializing it in another plugin has no effect here."
+		)
 	}
+
+	fun tell(toWhom: CommandSender?, message: String?) = tellOne(toWhom, message)
 
 	fun tell(toWhom: CommandSender?, vararg messages: String) {
-		messages.forEach { tell(toWhom, it) }
+		messages.forEach { tellOne(toWhom, it) }
 	}
 
 	fun tell(toWhom: CommandSender?, messages: Iterable<String>) {
-		messages.forEach { tell(toWhom, it) }
+		messages.forEach { tellOne(toWhom, it) }
 	}
 
 	fun tell(toWhom: CommandSender?, message: TextMessage) {
 		tell(toWhom, message.getMessage())
+	}
+
+	// Single source of truth for sending one line. Every public tell(...) overload funnels here
+	// rather than into each other: calling tell(toWhom, it) with a non-null String re-selected the
+	// vararg overload (its non-null String element is "more specific" than this String?), so the
+	// vararg / Iterable overloads recursed into themselves forever (StackOverflowError).
+	private fun tellOne(toWhom: CommandSender?, message: String?) {
+		if (toWhom == null || message.isNullOrEmpty()) return
+		send(toWhom, legacy(message, toWhom as? Player))
 	}
 
 	/** Sends a MiniMessage-formatted message. */
@@ -156,6 +197,7 @@ object Chat {
 		if (active != null) {
 			active.sendActionBar(toWhom, legacy(message, toWhom as? Player))
 		} else if (toWhom is Player) {
+			warnNoPlatformOnce()
 			@Suppress("DEPRECATION")
 			toWhom.spigot().sendMessage(
 				ChatMessageType.ACTION_BAR,
@@ -182,6 +224,7 @@ object Chat {
 		if (active != null) {
 			active.showTitle(toWhom, legacy(title ?: "", viewer), legacy(subtitle ?: "", viewer), fadeIn, stay, fadeOut)
 		} else if (viewer != null) {
+			warnNoPlatformOnce()
 			viewer.sendTitle(colorize(title ?: ""), colorize(subtitle ?: ""), fadeIn, stay, fadeOut)
 		}
 	}
@@ -254,6 +297,6 @@ object Chat {
 
 	// Isolated so the PlaceholderAPI class is only loaded when the plugin is actually present.
 	private fun applyPlaceholders(player: OfflinePlayer, text: String): String =
-		me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, text)
+		PlaceholderAPI.setPlaceholders(player, text)
 
 }
