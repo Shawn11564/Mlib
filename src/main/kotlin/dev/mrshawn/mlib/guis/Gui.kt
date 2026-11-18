@@ -119,6 +119,12 @@ abstract class Gui(
 
 		val menuItem = getGuiItem(id) ?: return
 
+		// A double-click arrives as up to three clicks; run the button once per physical click.
+		if (!DoubleClickFilter.shouldHandle(event.whoClicked.uniqueId, event, event.clickedInventory!!, event.slot, event.click)) {
+			event.isCancelled = true
+			return
+		}
+
 		menuItem.getOnClick().accept(event)
 		if (menuItem.updateOnClick) {
 			inventory.setItem(event.rawSlot, menuItem.getDisplayedItem())
@@ -137,6 +143,7 @@ abstract class Gui(
 	@EventHandler
 	fun onInventoryClose(event: InventoryCloseEvent) {
 		if (event.inventory == inventory) {
+			DoubleClickFilter.forget(event.player.uniqueId)
 			onClose(event.player as Player)
 
 			if (destroyOnClose && canBeDestroyed()) destroy()

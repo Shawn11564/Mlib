@@ -81,6 +81,11 @@ cancels the click** (`it.isCancelled = true`) so players can't take items out â€
 you write your own handler, remember to cancel the event yourself when you don't
 want the item to move.
 
+**Each physical click runs a handler once, double-clicks included.** A vanilla
+double-click sends up to three clicks (LEFT, LEFT, then `DOUBLE_CLICK` on release);
+`Gui` drops the `DOUBLE_CLICK` when both presses already arrived as LEFTs, so a
+double-click on a `+1` button adds 2, not 3 (`DoubleClickFilter`).
+
 ### BasicItem â€” a plain clickable button
 
 ```kotlin
